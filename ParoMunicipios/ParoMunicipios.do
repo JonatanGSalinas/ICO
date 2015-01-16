@@ -1,4 +1,4 @@
-Enter file contents here************************************
+e************************************
 *     Import Unemployment		   *
 ************************************
 * Last update: 2015-01-05 (JN) Add comments 
