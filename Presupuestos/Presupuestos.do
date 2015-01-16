@@ -1,4 +1,4 @@
-Enter file contents here************************************
+************************************
 *     Import Ayuntamientos budgets *
 ************************************
 * Last update: 2015-01-13 (JN) Add $ROOTDIR 
