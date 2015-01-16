@@ -1,0 +1,103 @@
+************************************
+*     Control Group Regressions    *
+************************************
+* Last update: 2015-01-16 (JN) Add $ROOTDIR
+
+cap log using "$ROOTDIR\Regresiones\regressionsControl.log", replace
+set more off
+clear
+use "$ROOTDIR\ControlGroup\GruposControl.dta"
+
+rename ControlID Inter //Control Group matched by intervals
+rename ControlID2 Arit //Control Group matched by arithmetic mean
+rename ControlID3 Geo // Control Group matched by geometric mean 
+
+//Merging with unemployment data
+merge 1:m CPRO CMUN using "$ROOTDIR\TablasUnidas\ParoMatch.dta"
+drop if _merge==2
+drop _merge
+
+
+//Replacing missing data: we assume that no unemployment data means zero (small and aging towns with no unemployment).
+replace Total = 0 if Total == .
+replace H25 = 0 if H25 == .
+replace H45 = 0 if H45 == .
+replace H2544 = 0 if H2544 == .
+replace M25 = 0 if M25 == .
+replace M45 = 0 if M45 == .
+replace M2544 = 0 if M2544 == .
+replace Agricultura = 0 if Agricultura == .
+replace Industria = 0 if Industria == .
+replace Construccion = 0 if Construccion == .
+replace Servicios = 0 if Servicios == .
+replace NoEmpleoAnterior = 0 if NoEmpleoAnterior == .
+replace importe_facturas = 0 if importe_facturas == .
+
+
+
+// Shock per capita: ICO liquidity shock / Population
+gen ShockPob = importe_facturas/Pob
+//Unemployment 
+gen ParoH = H25 + H2544 + H45
+gen TasaParoH = Paro*100/Hombres16a65
+
+
+
+gen DeudaDivPob = ImpDeudViva/Pob  //Ratio: muncicipio debts per capita
+
+replace ShockPob = 0 if ShockPob == .
+drop if Fecha == .
+drop if Codigo == ""
+
+destring Codigo, replace
+tsset Codigo Fecha
+
+* Generate seasonal (monthly), CCAA, and time dummies:
+gen mes = mod(Fecha, 12) + 1
+tab  mes, gen(mes_d)
+*drop mes_d12				// no hace falta
+tab CCAA, gen(ccaa_d)
+tab Fecha, gen(time_d)
+
+//replace Liq = Liq/1000		// nicer coefficients
+
+* Generate variables
+gen Treat = (Liq > 0)
+gen Post = 1 if Fecha >= 630 
+replace Post = 0 if Fecha < 630
+
+//gen RuralDummy = 1 if Pob <= 2000
+//replace RuralDummy = 0 if Pob > 2000
+
+foreach VAR in Treat Post {
+	assert !missing(`VAR') 	// checks that there are no missing values
+}
+
+
+
+summarize Treat Post Liq
+
+rename TasaParoH U
+gen D_U = D.U
+gen PostLiq = Post*Liq
+gen PostTreat = Post*Treat
+gen TreatLiq = Treat*Liq
+gen PostLiqTreat = Post*Liq*Treat
+
+summarize TreatLiq PostLiqTreat PostLiq
+
+* Regressions
+//regress D_U Post Liq Treat PostLiq PostTreat TreatLiq PostLiqTreat DeudaDivPob RuralDummy Pob
+*regress D_U Post Liq PostLiq DeudaDivPob RuralDummy Pob
+*regress D_U Post Liq Treat PostTreat DeudaDivPob RuralDummy Pob
+foreach C in Inter Arit Geo{	
+	display "Grupo de Control `C'"
+	foreach Y in D_U U {
+		regress `Y' Post Liq Treat PostTreat DeudaDivPob Pob mes_d* ccaa_d* if `C'!="" | quintiles == 5
+		display "Time dummies"
+		regress `Y' Liq Treat PostTreat DeudaDivPob Pob time_d* ccaa_d* if `C'!="" | quintiles == 5
+		display "Sin 2012"
+		regress `Y' Liq Treat PostTreat DeudaDivPob Pob time_d* ccaa_d* if (Fecha < 624 | Fecha > 636 & (`C'!="" | quintiles == 5)) // eliminates 2012m1 through 2013m1
+	}
+}
+log close
