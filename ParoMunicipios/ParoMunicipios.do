@@ -1,18 +1,12 @@
-e************************************
+************************************
 *     Import Unemployment		   *
 ************************************
-* Last update: 2015-01-05 (JN) Add comments 
+* Last update: 2015-01-16 (JN) Change Names 
 
-local loc JN
 
-if "`loc'" == "JN" {
-	global data_out "C:\Users\jgarcias\Desktop\Research\ICO"
-	global output "C:\Users\jgarcias\Desktop\Research\ICO"
-	global data "C:\Users\jgarcias\Desktop\Research\ICO"
-	}
 clear
 set more off
-save "$data_out\ParoMunicipios\ParoMunicipios.dta",emptyok replace 
+save "$ROOTDIR\ParoMunicipios\ParoMunicipios.dta",emptyok replace 
 global Provincias `" "ALAVA" "ALICANTE" "ALMERIA" "AVILA" "BADAJOZ" "BALEARES" "BARCELONA" "BURGOS" "CACERES" "CADIZ" "CASTELLON" "CIUDAD REAL" "CORDOBA" "A CORUÑA" "CUENCA" "GIRONA" "GRANADA" "GUADALAJARA" "GIPUZCOA" "HUELVA" "HUESCA" "JAEN" "LEON" "LLEIDA" "LA RIOJA" "LUGO" "MADRID" "MALAGA" "MURCIA" "ALBACETE" "NAVARRA" "OURENSE" "ASTURIAS" "PALENCIA" "LAS PALMAS" "PONTEVEDRA" "SALAMANCA" "STA CRUZ TENER." "CANTABRIA" "SEGOVIA" "SEVILLA" "SORIA" "TARRAGONA" "TERUEL" "TOLEDO" "VALENCIA" "VALLADOLID" "BIZKAIA" "ZAMORA" "ZARAGOZA" "CEUTA" "MELILLA""'
 global fechas "2006 2007 2008 2009 2010 2011 2012 2013"
 global meses "1 2 3 4 5 6 7 8 9 10 11 12"
@@ -23,13 +17,13 @@ scalar t = 0
 
 	foreach mes2005 of global meses2005{
 		foreach provincia of global Provincias{
-			import excel "$data\ParoMunicipios\2005\\`mes2005'2005.xls", sheet("PARO `provincia'") allstring clear 
+			import excel "$ROOTDIR\ParoMunicipios\2005\\`mes2005'2005.xls", sheet("PARO `provincia'") allstring clear 
 			drop if B==""
 			drop if _n == _N
 			gen Fecha = FechaTemp+t
 			gen Provincia = "`provincia'"
-			append using "$data_out\ParoMunicipios\ParoMunicipios.dta"
-			save "$data_out\ParoMunicipios\ParoMunicipios.dta", replace 
+			append using "$ROOTDIR\ParoMunicipios\ParoMunicipios.dta"
+			save "$ROOTDIR\ParoMunicipios\ParoMunicipios.dta", replace 
 		}
 	scalar t=t+1
 	}
@@ -38,26 +32,26 @@ scalar t = 0
 foreach fecha of global fechas {
 	foreach mes of global meses{
 		foreach provincia of global Provincias{
-			import excel "$data\ParoMunicipios\\`fecha'\\`mes'`fecha'.xls", sheet("PARO `provincia'") allstring clear 
+			import excel "$ROOTDIR\ParoMunicipios\\`fecha'\\`mes'`fecha'.xls", sheet("PARO `provincia'") allstring clear 
 			drop if B==""
 			drop if _n == _N
 			gen Fecha = FechaTemp+t
 			gen Provincia = "`provincia'"
-			append using "$data_out\ParoMunicipios\ParoMunicipios.dta"
-			save "$data_out\ParoMunicipios\ParoMunicipios.dta", replace 
+			append using "$ROOTDIR\ParoMunicipios\ParoMunicipios.dta"
+			save "$ROOTDIR\ParoMunicipios\ParoMunicipios.dta", replace 
 		}
 	scalar t=t+1
 	}
 }
 	foreach mes2014 of global meses2014{
 		foreach provincia of global Provincias{
-			import excel "$data\ParoMunicipios\2014\\`mes2014'2014.xls", sheet("PARO `provincia'") allstring clear 
+			import excel "$ROOTDIR\ParoMunicipios\2014\\`mes2014'2014.xls", sheet("PARO `provincia'") allstring clear 
 			drop if B==""
 			drop if _n == _N
 			gen Fecha = FechaTemp+t
 			gen Provincia = "`provincia'"
-			append using "$data_out\ParoMunicipios\ParoMunicipios.dta"
-			save "$data_out\ParoMunicipios\ParoMunicipios.dta", replace 
+			append using "$$ROOTDIR\ParoMunicipios\ParoMunicipios.dta"
+			save "$ROOTDIR\ParoMunicipios\ParoMunicipios.dta", replace 
 		}
 	scalar t=t+1
 	}
@@ -96,4 +90,4 @@ replace Municipio = "ZARZA, LA" if Municipio == "ZARZA, LA."
 
 
 
-save "$data_out\ParoMunicipios\ParoMunicipios.dta", replace 
+save "$ROOTDIR\ParoMunicipios\ParoMunicipios.dta", replace 
